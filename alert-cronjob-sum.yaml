@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  labels:
+    prometheus: k8s
+    role: alert-rules-custom
+  name: cronjobsum
+  namespace: openshift-monitoring
+spec:
+  groups:
+  - name: cronjobsum.rules
+    rules:
+    - alert: KubeJobIsTooMany
+      annotations:
+        message: Cronjob {{ $labels.namespace }}/{{ $labels.owner_name }} is {{ $value }}, was created more than 10.
+      expr: |
+        sum by (namespace,owner_name) (kube_job_owner{job="kube-state-metrics"})  > 10
+      for: 1m
+      labels:
+        severity: warning
